@@ -8,16 +8,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRoutes() *gin.Engine {
-	r := gin.Default()
-
+func RegisterUserRoutes(r *gin.Engine) {
 	userRepo := repositories.NewUserRepository()
 	userService := services.NewUserService(userRepo)
 	userCtrl := controllers.NewUserController(userService)
 
-	r.POST("/register", userCtrl.Register)
-	r.POST("/login", userCtrl.Login)
-	r.PUT("/user/:id", userCtrl.Update)
-
-	return r
+	auth := r.Group("/auth")
+	{
+		auth.POST("/register", userCtrl.Register)
+		auth.POST("/login", userCtrl.Login)
+		auth.PUT("/user/:id", userCtrl.Update)
+	}
 }
