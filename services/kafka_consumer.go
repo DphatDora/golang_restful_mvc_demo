@@ -53,12 +53,17 @@ func (c *KafkaConsumer) ConsumeMessages(topic string) {
 		<-sigterm
 		log.Println("Received shutdown signal, closing consumer...")
 		cancel()
-		partitionConsumer.Close()
-		c.consumer.Close()
+		// partitionConsumer.Close()
+		// c.consumer.Close()
 	}()
 
 	go func() {
-		defer partitionConsumer.Close()
+		defer func() {
+			log.Println("Closing partition consumer and main consumer")
+			partitionConsumer.Close()
+			c.consumer.Close()
+		}()
+
 		for {
 			select {
 			case msg := <-partitionConsumer.Messages():
@@ -83,7 +88,11 @@ func (c *KafkaConsumer) ConsumeMessages(topic string) {
 				log.Printf("Error from consumer: %s", err)
 			case <-ctx.Done():
 				return
+			case <-ctx.Done():
+				log.Println("Context cancelled, stopping message loop...")
+				return
 			}
+
 		}
 	}()
 }
