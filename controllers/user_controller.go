@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"go_restful_mvc/dto/req"
 	"go_restful_mvc/models"
 	"go_restful_mvc/services"
 	"net/http"
@@ -30,8 +31,8 @@ func (ctrl *UserController) Register(c *gin.Context) {
 }
 
 func (ctrl *UserController) Login(c *gin.Context) {
-	var input models.User
-	if err := c.ShouldBindJSON(&input); err != nil {
+	var input req.LoginRequest
+	if err := c.ShouldBind(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -40,7 +41,7 @@ func (ctrl *UserController) Login(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, gin.H{"message": "Login successful", "user": user})
 }
 
 func (ctrl *UserController) Update(c *gin.Context) {

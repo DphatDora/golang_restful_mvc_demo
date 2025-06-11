@@ -8,9 +8,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterUserRoutes(r *gin.Engine) {
+func RegisterUserRoutes(r *gin.Engine, kafkaProducer *services.KafkaProducer) {
 	userRepo := repositories.NewUserRepository()
-	userService := services.NewUserService(userRepo)
+	userService := services.NewUserService(userRepo, kafkaProducer)
 	userCtrl := controllers.NewUserController(userService)
 
 	auth := r.Group("/auth")
