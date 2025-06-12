@@ -2,8 +2,10 @@ package controllers
 
 import (
 	"go_restful_mvc/dto/req"
+	"go_restful_mvc/dto/res"
 	"go_restful_mvc/models"
 	"go_restful_mvc/services"
+	"go_restful_mvc/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -31,17 +33,32 @@ func (ctrl *UserController) Register(c *gin.Context) {
 }
 
 func (ctrl *UserController) Login(c *gin.Context) {
-	var input req.LoginRequest
-	if err := c.ShouldBind(&input); err != nil {
+	var request req.LoginRequest
+	var response res.LoginResponse
+
+	if err := c.ShouldBind(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	user, err := ctrl.service.Login(input.Email, input.Password)
+	user, err := ctrl.service.Login(request.Email, request.Password)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		response.Message = "Login failed"
+		response.Token = ""
+		c.JSON(http.StatusUnauthorized, response)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Login successful", "user": user})
+
+	token, err := utils.GenerateToken(user.ID)
+	if err != nil {
+		response.Message = "Error generating token"
+		response.Token = ""
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	response.Message = "Login successful"
+	response.Token = token
+	c.JSON(http.StatusOK, response)
 }
 
 func (ctrl *UserController) Update(c *gin.Context) {

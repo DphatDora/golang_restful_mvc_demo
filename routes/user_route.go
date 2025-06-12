@@ -2,6 +2,7 @@ package routes
 
 import (
 	"go_restful_mvc/controllers"
+	"go_restful_mvc/middleware"
 	"go_restful_mvc/repositories"
 	"go_restful_mvc/services"
 
@@ -17,6 +18,6 @@ func RegisterUserRoutes(r *gin.Engine, kafkaProducer *services.KafkaProducer) {
 	{
 		auth.POST("/register", userCtrl.Register)
 		auth.POST("/login", userCtrl.Login)
-		auth.PUT("/user/:id", userCtrl.Update)
+		auth.PUT("/user/:id", middleware.JWTAuth(), userCtrl.Update)
 	}
 }
