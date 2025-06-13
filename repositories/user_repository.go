@@ -6,6 +6,7 @@ import (
 )
 
 type UserRepository interface {
+	FindByID(id string) (*models.User, error)
 	Create(user *models.User) error
 	FindByEmailAndPassword(email, password string) (*models.User, error)
 	Update(id string, user *models.User) error
@@ -15,6 +16,15 @@ type userRepository struct{}
 
 func NewUserRepository() UserRepository {
 	return &userRepository{}
+}
+
+func (r *userRepository) FindByID(id string) (*models.User, error) {
+	var user models.User
+	err := config.DB.First(&user, "id = ?", id).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
 }
 
 func (r *userRepository) Create(user *models.User) error {

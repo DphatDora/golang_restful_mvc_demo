@@ -8,6 +8,7 @@ import (
 )
 
 type UserService interface {
+	FindByID(id string) (*models.User, error)
 	Register(user *models.User) error
 	Login(email, password string) (*models.User, error)
 	Update(id string, user *models.User) error
@@ -23,6 +24,14 @@ func NewUserService(repo repositories.UserRepository, kafkaProducer *KafkaProduc
 		repo:  repo,
 		kafka: kafkaProducer,
 	}
+}
+
+func (s *userService) FindByID(id string) (*models.User, error) {
+	user, err := s.repo.FindByID(id)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }
 
 func (s *userService) Register(user *models.User) error {

@@ -62,15 +62,24 @@ func (ctrl *UserController) Login(c *gin.Context) {
 }
 
 func (ctrl *UserController) Update(c *gin.Context) {
-	var user models.User
 	id := c.Param("id")
-	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+
+	user, err := ctrl.service.FindByID(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
-	if err := ctrl.service.Update(id, &user); err != nil {
+
+	user.Name = c.PostForm("name")
+
+	if imagePath, exists := c.Get("image_url"); exists {
+		user.ImageURL = imagePath.(string)
+	}
+
+	if err := ctrl.service.Update(id, user); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Update failed"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Updated"})
+	c.JSON(http.StatusOK, gin.H{"message": "Updated Successfully"})
+
 }

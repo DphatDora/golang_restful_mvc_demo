@@ -18,6 +18,6 @@ func RegisterUserRoutes(r *gin.Engine, kafkaProducer *services.KafkaProducer) {
 	{
 		auth.POST("/register", userCtrl.Register)
 		auth.POST("/login", userCtrl.Login)
-		auth.PUT("/user/:id", middleware.JWTAuth(), userCtrl.Update)
+		auth.PUT("/user/:id", middleware.JWTAuth(), middleware.HandleAvatarUpload, userCtrl.Update)
 	}
 }

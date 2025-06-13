@@ -61,6 +61,9 @@ func main() {
 	routes.RegisterUserRoutes(r, kafkaProducer)
 	routes.RegisterProductRoutes(r)
 
+	// Confit static file serving
+	r.Static("/user-images", "./user-images")
+
 	// Start the server
 	port := os.Getenv("APP_PORT")
 	if port == "" {
