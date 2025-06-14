@@ -45,7 +45,7 @@ func main() {
 		log.Println("Email service initialized successfully")
 	}
 
-	// Initialize Kafka consumer only if both producer and email service are available
+	// Initialize Kafka consumer
 	if kafkaProducer != nil && emailService != nil {
 		kafkaConsumer, err := services.NewKafkaConsumer(brokerList, emailService)
 		if err != nil {
@@ -61,8 +61,11 @@ func main() {
 	routes.RegisterUserRoutes(r, kafkaProducer)
 	routes.RegisterProductRoutes(r)
 
-	// Confit static file serving
+	// Confit static files
 	r.Static("/user-images", "./user-images")
+
+	// Initialize Redis
+	config.InitRedis()
 
 	// Start the server
 	port := os.Getenv("APP_PORT")

@@ -1,12 +1,14 @@
 package controllers
 
 import (
+	"go_restful_mvc/config"
 	"go_restful_mvc/dto/req"
 	"go_restful_mvc/dto/res"
 	"go_restful_mvc/models"
 	"go_restful_mvc/services"
 	"go_restful_mvc/utils"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -36,12 +38,26 @@ func (ctrl *UserController) Login(c *gin.Context) {
 	var request req.LoginRequest
 	var response res.LoginResponse
 
+	// Get login attempts from Redis
+	attempts, key := utils.GetLoginAttempts(c)
+
+	if attempts >= 5 {
+		response.Message = "Too many login attempts. Please try again later."
+		response.Token = ""
+		c.JSON(http.StatusTooManyRequests, response)
+		return
+	}
+
 	if err := c.ShouldBind(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	user, err := ctrl.service.Login(request.Email, request.Password)
 	if err != nil {
+		// Increment login attempts in Redis
+		config.RedisClient.Incr(c, key)
+		config.RedisClient.Expire(c, key, 1*time.Minute) // Set expiration for 1 minutes
+
 		response.Message = "Login failed"
 		response.Token = ""
 		c.JSON(http.StatusUnauthorized, response)
@@ -56,6 +72,8 @@ func (ctrl *UserController) Login(c *gin.Context) {
 		return
 	}
 
+	// Reset login attempts on successful login
+	config.RedisClient.Del(c, key)
 	response.Message = "Login successful"
 	response.Token = token
 	c.JSON(http.StatusOK, response)
